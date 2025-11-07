@@ -15,6 +15,38 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL
 });
 
+app.post('/login', async (req, res) => {
+    try {
+        const { email, senha } = req.body;
+
+        const result = await pool.query(
+            'SELECT * FROM Usuarios WHERE email = $1',
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(401).json({ message: 'Usuário ou senha inválidos' });
+        }
+
+        const usuario = result.rows[0];
+
+        if (usuario.senha !== senha) {
+            return res.status(401).json({ message: 'Usuário ou senha inválidos' });
+        }
+
+        res.json({
+            id: usuario.id,
+            nome: usuario.nome,
+            email: usuario.email,
+            perfil: usuario.perfil
+        });
+
+    } catch (error) {
+        console.error('Erro ao fazer login:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+});
+
 app.post('/usuarios', async (req, res) => {
     try {
         const { nome, email, senha, perfil } = req.body;

@@ -8,8 +8,8 @@ Content-Type: application/json
 
 {
     "nome": "Dr. João Silva",
-    "email": "joao@veterinaria.com",
-    "senha": "123456",
+    "email": "adm",
+    "senha": "123",
     "perfil": "veterinario"
 }
 

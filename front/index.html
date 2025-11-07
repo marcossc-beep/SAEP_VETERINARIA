@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Veterinário - Login</title>
+</head>
+<body>
+
+    <div id="login-section">
+        <h2>Login</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="senha" placeholder="Senha">
+        <button onclick="fazerLogin()">Entrar</button>
+        <p id="login-message"></p>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        window.onload = function() {
+            if (localStorage.getItem('usuario')) {
+                window.location.href = 'Tutor.html';
+            }
+        };
+
+        async function fazerLogin() {
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const messageElement = document.getElementById('login-message');
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                if (response.ok) {
+                    const usuario = await response.json();
+                    localStorage.setItem('usuario', JSON.stringify(usuario));
+                    window.location.href = 'Tutor.html';
+                } else {
+                    messageElement.textContent = 'Usuário ou senha inválidos';
+                }
+            } catch (error) {
+                messageElement.textContent = 'Erro ao fazer login';
+            }
+        }
+    </script>
+</body>
+</html>

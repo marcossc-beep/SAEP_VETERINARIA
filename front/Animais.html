@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Animais</title>
+</head>
+<body>
+    <nav>
+        <a href="Tutor.html">Tutores</a> |
+        <a href="Animais.html">Animais</a> |
+        <a href="Historico.html">Consultas/Histórico</a> |
+        <a href="Usuarios.html">Usuários</a> |
+        <span id="usuario-info" style="float: right;"></span>
+        <button onclick="fazerLogout()" style="float: right;">Sair</button>
+    </nav>
+
+    <h1>Gerenciar Animais</h1>
+
+    <div>
+        <h2>Cadastro de Animal</h2>
+        <input type="text" id="animal-nome" placeholder="Nome">
+        <input type="text" id="animal-especie" placeholder="Espécie">
+        <input type="text" id="animal-raca" placeholder="Raça">
+        <label for="animal-data">Data de Nascimento:</label>
+        <input type="date" id="animal-data" placeholder="Data de Nascimento">
+        <select id="animal-sexo">
+            <option value="M">Macho</option>
+            <option value="F">Fêmea</option>
+        </select>
+        <input type="number" id="animal-tutor" placeholder="ID do Tutor">
+        <button onclick="cadastrarAnimal()">Cadastrar Animal</button>
+
+        <h3>Lista de Animais</h3>
+        <button onclick="listarAnimais()">Atualizar Lista</button>
+        <div id="lista-animais"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let usuarioLogado = null;
+
+        window.onload = function() {
+            const usuarioStorage = localStorage.getItem('usuario');
+            if (!usuarioStorage) {
+                window.location.href = 'index.html';
+                return;
+            }
+            usuarioLogado = JSON.parse(usuarioStorage);
+            document.getElementById('usuario-info').textContent = `Usuário: ${usuarioLogado.nome}`;
+            listarAnimais();
+        };
+
+        function fazerLogout() {
+            localStorage.removeItem('usuario');
+            window.location.href = 'index.html';
+        }
+
+        async function cadastrarAnimal() {
+            const animal = {
+                nome: document.getElementById('animal-nome').value,
+                especie: document.getElementById('animal-especie').value,
+                raca: document.getElementById('animal-raca').value,
+                data_nascimento: document.getElementById('animal-data').value,
+                sexo: document.getElementById('animal-sexo').value,
+                id_tutor: document.getElementById('animal-tutor').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/animais`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(animal)
+                });
+
+                if (response.ok) {
+                    listarAnimais();
+                    document.getElementById('animal-nome').value = '';
+                    document.getElementById('animal-especie').value = '';
+                    document.getElementById('animal-raca').value = '';
+                    document.getElementById('animal-data').value = '';
+                    document.getElementById('animal-tutor').value = '';
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar animal:', error);
+            }
+        }
+
+        async function listarAnimais() {
+            try {
+                const response = await fetch(`${API_URL}/animais/simples`);
+                const animais = await response.json();
+                const lista = document.getElementById('lista-animais');
+                lista.innerHTML = '';
+
+                animais.forEach(animal => {
+                    const div = document.createElement('div');
+                    div.textContent = `ID: ${animal.id} - Nome: ${animal.nome} - Espécie: ${animal.especie}`;
+                    lista.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao listar animais:', error);
+            }
+        }
+    </script>
+</body>
+</html>

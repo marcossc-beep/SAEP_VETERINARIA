@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários</title>
+</head>
+<body>
+    <nav>
+        <a href="Tutor.html">Tutores</a> |
+        <a href="Animais.html">Animais</a> |
+        <a href="Historico.html">Consultas/Histórico</a> |
+        <a href="Usuarios.html">Usuários</a> |
+        <span id="usuario-info" style="float: right;"></span>
+        <button onclick="fazerLogout()" style="float: right;">Sair</button>
+    </nav>
+
+    <h1>Gerenciar Usuários</h1>
+    
+    <div>
+        <h2>Cadastro de Usuário</h2>
+        <input type="text" id="usuario-nome" placeholder="Nome">
+        <input type="email" id="usuario-email" placeholder="Email">
+        <input type="password" id="usuario-senha" placeholder="Senha">
+        <select id="usuario-perfil">
+            <option value="Assistente">Assistente</option>
+            <option value="Veterinário">Veterinário</option>
+            <option value="Administrador">Administrador</option>
+        </select>
+        <button onclick="cadastrarUsuario()">Cadastrar Usuário</button>
+        <p id="cadastro-message"></p>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let usuarioLogado = null;
+
+        window.onload = function() {
+            const usuarioStorage = localStorage.getItem('usuario');
+            if (!usuarioStorage) {
+                window.location.href = 'index.html';
+                return;
+            }
+            usuarioLogado = JSON.parse(usuarioStorage);
+            document.getElementById('usuario-info').textContent = `Usuário: ${usuarioLogado.nome}`;
+
+            if (usuarioLogado.perfil !== 'Administrador') {
+                document.body.innerHTML = "<h1>Acesso Negado</h1><p>Você não tem permissão para acessar esta página.</p><a href='Tutor.html'>Voltar</a>";
+            }
+        };
+
+        function fazerLogout() {
+            localStorage.removeItem('usuario');
+            window.location.href = 'index.html';
+        }
+
+        async function cadastrarUsuario() {
+            const usuario = {
+                nome: document.getElementById('usuario-nome').value,
+                email: document.getElementById('usuario-email').value,
+                senha: document.getElementById('usuario-senha').value,
+                perfil: document.getElementById('usuario-perfil').value
+            };
+            const messageElement = document.getElementById('cadastro-message');
+
+            try {
+                const response = await fetch(`${API_URL}/usuarios`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(usuario)
+                });
+
+                if (response.ok) {
+                    messageElement.textContent = 'Usuário cadastrado com sucesso!';
+                    document.getElementById('usuario-nome').value = '';
+                    document.getElementById('usuario-email').value = '';
+                    document.getElementById('usuario-senha').value = '';
+                } else {
+                     messageElement.textContent = 'Erro ao cadastrar usuário.';
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar usuário:', error);
+                messageElement.textContent = 'Erro de conexão.';
+            }
+        }
+    </script>
+</body>
+</html>

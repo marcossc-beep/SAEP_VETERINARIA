@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultas e Histórico</title>
+</head>
+<body>
+    <nav>
+        <a href="Tutor.html">Tutores</a> |
+        <a href="Animais.html">Animais</a> |
+        <a href="Historico.html">Consultas/Histórico</a> |
+        <a href="Usuarios.html">Usuários</a> |
+        <span id="usuario-info" style="float: right;"></span>
+        <button onclick="fazerLogout()" style="float: right;">Sair</button>
+    </nav>
+
+    <h1>Consultas e Histórico</h1>
+
+    <div>
+        <h2>Agendar Consulta</h2>
+        <input type="number" id="consulta-animal" placeholder="ID do Animal">
+        <input type="number" id="consulta-veterinario" placeholder="ID do Veterinário">
+        <label for="consulta-data">Data e Hora:</label>
+        <input type="datetime-local" id="consulta-data">
+        <textarea id="consulta-sintomas" placeholder="Sintomas"></textarea>
+        <button onclick="agendarConsulta()">Agendar</button>
+
+        <h3>Lista de Consultas Agendadas</h3>
+        <button onclick="listarConsultas()">Atualizar Lista</button>
+        <div id="lista-consultas"></div>
+    </div>
+    
+    <hr>
+
+    <div>
+        <h2>Histórico de Consultas</h2>
+        <input type="number" id="historico-animal" placeholder="ID do Animal">
+        <button onclick="buscarHistorico()">Buscar Histórico</button>
+        <div id="historico-consultas"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let usuarioLogado = null;
+
+        // VERIFICA AUTENTICAÇÃO
+        window.onload = function() {
+            const usuarioStorage = localStorage.getItem('usuario');
+            if (!usuarioStorage) {
+                window.location.href = 'index.html';
+                return;
+            }
+            usuarioLogado = JSON.parse(usuarioStorage);
+            document.getElementById('usuario-info').textContent = `Usuário: ${usuarioLogado.nome}`;
+            
+            // Preenche o ID do veterinário se o usuário for um
+            if (usuarioLogado.perfil === 'Veterinário') {
+                 document.getElementById('consulta-veterinario').value = usuarioLogado.id;
+            }
+
+            listarConsultas();
+        };
+
+        function fazerLogout() {
+            localStorage.removeItem('usuario');
+            window.location.href = 'index.html';
+        }
+
+        // Funções de Consultas
+        async function agendarConsulta() {
+            const consulta = {
+                animal_id: document.getElementById('consulta-animal').value,
+                usuario_id: document.getElementById('consulta-veterinario').value,
+                data_hora_agendamento: document.getElementById('consulta-data').value,
+                sintomas: document.getElementById('consulta-sintomas').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/consultas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(consulta)
+                });
+
+                if (response.ok) {
+                    listarConsultas();
+                    document.getElementById('consulta-animal').value = '';
+                    document.getElementById('consulta-data').value = '';
+                    document.getElementById('consulta-sintomas').value = '';
+                } else {
+                    const erro = await response.json();
+                    alert(erro.message); // Alerta de horário conflitante
+                }
+            } catch (error) {
+                console.error('Erro ao agendar consulta:', error);
+            }
+        }
+
+        async function listarConsultas() {
+            try {
+                // Usando o endpoint /simples
+                const response = await fetch(`${API_URL}/consultas/simples`);
+                const consultas = await response.json();
+                const lista = document.getElementById('lista-consultas');
+                lista.innerHTML = '';
+
+                consultas.forEach(consulta => {
+                    const div = document.createElement('div');
+                    div.textContent = `ID: ${consulta.id} - AnimalID: ${consulta.animal_id} - Data: ${new Date(consulta.data_hora_agendamento).toLocaleString()}`;
+                    lista.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao listar consultas:', error);
+            }
+        }
+
+        // Função de Histórico
+        async function buscarHistorico() {
+            const animalId = document.getElementById('historico-animal').value;
+            if (!animalId) return;
+
+            try {
+                // Usando o endpoint /simples
+                const response = await fetch(`${API_URL}/animais/${animalId}/historico/simples`);
+                const historico = await response.json();
+                const lista = document.getElementById('historico-consultas');
+                lista.innerHTML = '';
+
+                if (historico.length === 0) {
+                    lista.textContent = "Nenhuma consulta encontrada para este animal.";
+                    return;
+                }
+
+                historico.forEach(consulta => {
+                    const div = document.createElement('div');
+                    div.textContent = `Data: ${new Date(consulta.data_hora_agendamento).toLocaleString()} - Status: ${consulta.status}`;
+                    if (consulta.tratamento_prescrito) {
+                        div.textContent += ` - Tratamento: ${consulta.tratamento_prescrito}`;
+                    }
+                    lista.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao buscar histórico:', error);
+            }
+        }
+    </script>
+</body>
+</html>
