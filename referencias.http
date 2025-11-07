@@ -1,0 +1,80 @@
+@baseUrl = http://localhost:3000
+
+### 1. Gerenciamento de Usuários ###
+
+### Criar novo usuário (veterinário ou assistente)
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+    "nome": "Dr. João Silva",
+    "email": "joao@veterinaria.com",
+    "senha": "123456",
+    "perfil": "veterinario"
+}
+
+### 2. Gerenciamento de Tutores ###
+
+### Listar todos os tutores
+GET {{baseUrl}}/tutores
+
+### Criar novo tutor
+POST {{baseUrl}}/tutores
+Content-Type: application/json
+
+{
+    "nome": "Maria Santos",
+    "cpf": "123.456.789-00",
+    "telefone": "(11) 99999-9999",
+    "email": "maria@email.com",
+    "endereco": "Rua das Flores, 123"
+}
+
+### 3. Gerenciamento de Animais ###
+
+### Listar todos os animais
+GET {{baseUrl}}/animais
+
+### Criar novo animal
+POST {{baseUrl}}/animais
+Content-Type: application/json
+
+{
+    "nome": "Rex",
+    "especie": "Cachorro",
+    "raca": "Labrador",
+    "data_nascimento": "2020-01-01",
+    "sexo": "M",
+    "id_tutor": 1
+}
+
+### 4. Gerenciamento de Consultas ###
+
+### Listar todas as consultas
+GET {{baseUrl}}/consultas
+
+### Criar nova consulta
+POST {{baseUrl}}/consultas
+Content-Type: application/json
+
+{
+    "animal_id": 1,
+    "usuario_id": 1,
+    "data_hora_agendamento": "2025-11-10T14:30:00Z",
+    "sintomas": "Perda de apetite e letargia"
+}
+
+### Atualizar status e tratamento da consulta
+PATCH {{baseUrl}}/consultas/1
+Content-Type: application/json
+
+{
+    "status": "Realizada",
+    "tratamento_prescrito": "Antibiótico 2x ao dia por 7 dias"
+}
+
+### 5. Consulta de Histórico ###
+
+### Buscar histórico de consultas de um animal
+GET {{baseUrl}}/animais/1/historico
+
